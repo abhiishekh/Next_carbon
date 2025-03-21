@@ -31,7 +31,7 @@ function Navbar() {
         <nav className="relative min-w-full flex items-center flex-col">
             {/* Left container: Logo */}
             <div className="flex container items-center justify-between w-full px-4 py-4 md:py-4">
-                <button className="text-3xl font-black bg-transparent md:text-5xl p-0" onClick={() => (navigate('/'))}>Exira</button>
+                <button className="text-3xl font-black bg-transparent md:text-5xl p-0" onClick={() => (navigate('/'))}>Next Carbon</button>
 
                 {/* Mobile menu button */}
                 <div className="flex items-center md:hidden">

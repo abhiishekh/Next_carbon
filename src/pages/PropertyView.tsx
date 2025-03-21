@@ -18,25 +18,32 @@ import { useAuth } from "@/hooks/AuthContext";
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
 import { Project } from "index";
-
+import { useRazorpay } from "react-razorpay";
+import axios from "axios";
 
 const PropertyView = () => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [data, setData] = useState<Project | null>(null);
-  const { user } = useAuth()
-  const propertyId = window.location.pathname.split('/').pop();
+  const { user } = useAuth();
+  const [investObject, setInvestObject] = useState({
+    amount: "",
+  });
+  const propertyId = window.location.pathname.split("/").pop();
+  const { Razorpay } = useRazorpay();
 
   useEffect(() => {
     const fetchProjects = async () => {
       setLoading(true);
-      const { data, error } = await supabase.from('property_data').select('*').eq('id', propertyId);
+      const { data, error } = await supabase
+        .from("property_data")
+        .select("*")
+        .eq("id", propertyId);
       if (error) {
         alert("error");
         // setData(data);
       }
       if (data) {
-
         setData(data[0]);
         // const types = Array.from(new Set(data.map(project => project.type)));
         // setData(types);
@@ -47,9 +54,65 @@ const PropertyView = () => {
     fetchProjects();
   }, []);
 
-
   if (loading) {
     return <div>Loading...</div>;
+  }
+
+  async function handleBuy() {
+    if (!user) {
+      // TODO: Show a toast message
+      return;
+    }
+
+    const { data: orderData } = await axios.post(
+      `${import.meta.env.VITE_BACKEND_URL}/api/orders/create`,
+      {
+        userId: user.id,
+        propertyId,
+        shares: parseInt(investObject.amount),
+      }
+    );
+
+    if (!orderData || orderData.success === false) {
+      // TODO: Show a toast message
+      return;
+    }
+
+    const razorpay = new Razorpay({
+      name: "Next Carbon",
+      key: import.meta.env.VITE_RAZORPAY_KEY,
+      amount: orderData.data.amount,
+      currency: orderData.data.currency,
+      description: "Payment for buying property shares",
+      order_id: orderData.data.id,
+      handler: async (res) => {
+        try {
+          const { data } = await axios.post(
+            `${import.meta.env.VITE_BACKEND_URL}/api/orders/verify`,
+            {
+              orderId: res.razorpay_order_id,
+              userId: user.id,
+              propertyId,
+              shares: parseInt(investObject.amount),
+              paymentId: res.razorpay_payment_id,
+              razorpaySignature: res.razorpay_signature,
+            }
+          );
+
+          if (!data || data.success === false) {
+            // TODO: Show a toast message
+            return;
+          }
+
+          // TODO: Show a success toast message
+          alert("Payment successful");
+        } catch (error) {
+          console.log(error);
+        }
+      },
+    });
+
+    razorpay.open();
   }
 
   return (
@@ -124,9 +187,9 @@ const PropertyView = () => {
                   <p className="text-black text-md">Date</p>
                   <p className="font-bold text-black text-md">
                     {/* convert currentProperty.created_at to human readable format*/}
-                    {data?.created_at ? new Date(
-                          data.created_at
-                        ).toLocaleDateString() : ''}
+                    {data?.created_at
+                      ? new Date(data.created_at).toLocaleDateString()
+                      : ""}
                     {/* 9/18/24 */}
                   </p>
                 </div>
@@ -336,8 +399,7 @@ const PropertyView = () => {
                   {/* {currentProperty.JSONData.attributes.sharePerNFT.toFixed(
             4
           )} */}
-                  {data?.attributes?.sharePerNFT}%
-                  {/* 0.0159% */}
+                  {data?.attributes?.sharePerNFT}%{/* 0.0159% */}
                 </p>
               </div>
               <div className="flex flex-col items-center justify-center">
@@ -347,7 +409,7 @@ const PropertyView = () => {
             .initialPropertyValue /
             currentProperty.JSONData.attributes.initialSharePrice} */}
                   {/* 6300 */}
-                  {data?.attributes?.initialPropertyValue }
+                  {data?.attributes?.initialPropertyValue}
                 </p>
               </div>
               <div className="flex flex-col center items-center justify-center">
@@ -459,29 +521,35 @@ const PropertyView = () => {
                 type="text"
                 placeholder="Enter amount of shares to buy"
                 className="w-full px-4 py-2 my-1 text-lg border rounded-lg outline-none bg-black/10"
-              // value={investObject.amount}
-              // onChange={(e) => {
-              //   setInvestObject({
-              //     ...investObject,
-              //     amount: e.target.value,
-              //   });
-              // }}
+                value={investObject.amount}
+                onChange={(e) => {
+                  setInvestObject({
+                    ...investObject,
+                    amount: e.target.value,
+                  });
+                }}
               />
             </div>
 
-            {user ? <>
-              <button className="w-full py-2 mb-4 text-lg font-normal text-white bg-black border-2 border-black rounded-xl hover:bg-white hover:text-black"
-                onClick={() => {
-                  // handleBuy();
-                }}>
-                <p>Invest Now with USDC</p>
-              </button>
-            </> : <>
-              <button className="w-full py-2 mb-4 text-lg font-normal text-white bg-black border-2 border-black rounded-xl hover:bg-white hover:text-black"
-                onClick={() => navigate('/login')}>
-                <p>Login to Invest</p>
-              </button>
-            </>}
+            {user ? (
+              <>
+                <button
+                  className="w-full py-2 mb-4 text-lg font-normal text-white bg-black border-2 border-black rounded-xl hover:bg-white hover:text-black"
+                  onClick={async () => await handleBuy()}
+                >
+                  <p>Invest Now with USDC</p>
+                </button>
+              </>
+            ) : (
+              <>
+                <button
+                  className="w-full py-2 mb-4 text-lg font-normal text-white bg-black border-2 border-black rounded-xl hover:bg-white hover:text-black"
+                  onClick={() => navigate("/login")}
+                >
+                  <p>Login to Invest</p>
+                </button>
+              </>
+            )}
           </div>
         </div>
       </div>

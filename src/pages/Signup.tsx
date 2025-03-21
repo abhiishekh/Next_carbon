@@ -16,7 +16,10 @@ export default function Signup() {
   });
 
   const [loading, setLoading] = useState<boolean>(false);
-  const [message, setMessage] = useState<{ type: "error" | "success"; text: string } | null>(null);
+  const [message, setMessage] = useState<{
+    type: "error" | "success";
+    text: string;
+  } | null>(null);
 
   // Handle input change
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -30,7 +33,8 @@ export default function Signup() {
     setMessage(null);
 
     try {
-      const { email, password, firstName, lastName, username, phone } = formData;
+      const { email, password, firstName, lastName, username, phone } =
+        formData;
 
       // Check if username already exists
       const { data: existingUser, error: checkError } = await supabase
@@ -64,7 +68,7 @@ export default function Signup() {
             id: data.user.id,
             email,
             first_name: firstName,
-            last_name:lastName,
+            last_name: lastName,
             username,
             phone,
           },
@@ -76,7 +80,7 @@ export default function Signup() {
           type: "success",
           text: "Signup successful!",
         });
-        navigate('/')
+        navigate("/");
       }
     } catch (err: any) {
       setMessage({ type: "error", text: err.message || "Signup failed." });
@@ -86,11 +90,18 @@ export default function Signup() {
   };
 
   return (
-    <div className="flex justify-center mt-24 px-4 ">
-      <form onSubmit={handleSignup} className="bg-white p-6 rounded-lg shadow-md w-full max-w-sm">
+    <div className="flex justify-center mt-6 px-4 ">
+      <form
+        onSubmit={handleSignup}
+        className="bg-white p-6 rounded-lg shadow-md w-full max-w-sm"
+      >
         <h2 className="text-xl font-semibold mb-4">Signup</h2>
         {message && (
-          <p className={`${message.type === "error" ? "text-red-500" : "text-green-500"} text-sm mb-2`}>
+          <p
+            className={`${
+              message.type === "error" ? "text-red-500" : "text-green-500"
+            } text-sm mb-2`}
+          >
             {message.text}
           </p>
         )}
@@ -98,16 +109,16 @@ export default function Signup() {
         <Input
           type="text"
           name="firstName"
-          placeholder="first Name"
+          placeholder="First Name"
           value={formData.firstName}
           onChange={handleChange}
           required
           className="mb-3"
         />
-         <Input
+        <Input
           type="text"
           name="lastName"
-          placeholder="last Name"
+          placeholder="Last Name"
           value={formData.lastName}
           onChange={handleChange}
           required

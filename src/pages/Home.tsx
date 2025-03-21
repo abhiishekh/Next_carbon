@@ -60,9 +60,7 @@ function Home() {
 
           <div className="flex flex-col items-center mt-1 text-xl md:flex-row lg:text-xl md:gap-x-3 gap-y-3 lg:gap-y-0">
             <FontAwesomeIcon icon={faCircleCheck} className="" />
-            <p>
-              Safe, Secure, and Verified Assets
-            </p>
+            <p>Safe, Secure, and Verified Assets</p>
           </div>
         </div>
 
@@ -81,9 +79,14 @@ function Home() {
       <div className="container flex flex-col items-center justify-center gap-8 mx-auto lg:flex-row my-28 lg:gap-x-20">
         {/* Left container */}
         <div className="flex flex-col items-start text-center lg:text-left">
-          <p className="text-4xl font-bold"> Carbon Credits: A Sustainable Choice</p>
+          <p className="text-4xl font-bold">
+            {" "}
+            Carbon Credits: A Sustainable Choice
+          </p>
           <p className="max-w-lg text-lg">
-            Invest in verified carbon credit projects to drive real environmental impact and offset your carbon footprint, contributing to a cleaner, greener future.
+            Invest in verified carbon credit projects to drive real
+            environmental impact and offset your carbon footprint, contributing
+            to a cleaner, greener future.
           </p>
         </div>
         {/* Right container */}
